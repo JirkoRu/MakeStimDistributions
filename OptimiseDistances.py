@@ -2,6 +2,9 @@ import numpy as np
 import itertools as it
 from scipy.optimize import minimize
 import sys
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 """
 code intended to make maximally distant points in n-dimensional space, 
@@ -82,8 +85,33 @@ def minimisation(n_points,dim,bounds):
         bounds=bounds,
     )
     new_points = np.reshape(res.x, (n_points, dim))
+    fun_value = -res.fun
 
-    return res, new_points
+    return fun_value, res, new_points
+
+
+def run_n_optimisations(dim,n_points, upper, lower, n_optimisations):
+    bounds = define_bounds(n_points, dim, upper, lower)
+    run_results = np.zeros(n_optimisations)
+    for run in range(n_optimisations):
+        fun_value, res, new_points = minimisation(n_points, dim, bounds)
+        run_results[run] = fun_value
+        print(run)
+    results_df = pd.DataFrame(run_results)
+    fig, ax = plt.subplots()
+    # results_df.plot(kind="kde", ax=ax, color="lightcoral")
+    # results_df.plot(kind="hist", density=True, alpha=0.65, bins=25, ax=ax)
+    results_df.plot(kind="hist", alpha=0.65, bins=25, ax=ax)
+    ax.set_xlabel("Converged euclidean distance")
+    ax.set_ylabel("Frequency")
+    ax.set_title("Converged distances n = " + str(n_optimisations))
+    ax.get_legend().remove()
+    ax.tick_params(left=False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.grid(False)
+    plt.show()
+    plt.savefig('hist2.png')
 
 
 # Driver code
@@ -92,7 +120,9 @@ if __name__ == '__main__':
     dim = 7
     upper = 5
     lower = 0
-    bounds = define_bounds(n_points, dim, upper, lower)
-    res, new_points = minimisation(n_points, dim, bounds)
-    print(res)
-    print(new_points)
+    n_optimisations = 200
+    # bounds = define_bounds(n_points, dim, upper, lower)
+    # fun_value, res, new_points = minimisation(n_points, dim, bounds)
+    # print(res)
+    # print(new_points)
+    run_n_optimisations(dim, n_points, upper, lower, n_optimisations)
