@@ -34,12 +34,12 @@ def objective_function(x, n_points, dim):
     for index, comb in enumerate(combinations):
         norms[index] = (np.linalg.norm(comb[0] - comb[1]))
 
-    return -np.amin(norms)  # the minimum of all points
+    return -np.amin(norms)  # the minimum norm of all points
 
 
 def define_bounds(n_points, dim, upper_bound, lower_bound):
     """
-    function that decscribe the bounds of your n-dimensional points
+    function that describes the bounds of your n-dimensional points
 
     Parameters:
     :n_points:      The number of points to be placed in the space (int).
@@ -90,17 +90,52 @@ def minimisation(n_points,dim,bounds):
     return fun_value, res, new_points
 
 
-def run_n_optimisations(dim,n_points, upper, lower, n_optimisations):
+def run_n_optimisations(dim, n_points, upper, lower, n_optimisations):
+    """
+    function that runs the optimisation n-times to check for reasonable convergence
+    and returns the vectors corresponding to the run with the largest euclidean distance
+
+    Parameters:
+    :n_points:      The number of points to be placed in the space (int).
+    :dim:           The dimension of the space in which we want to place points (int).
+    :upper_bound:   The upper bound either for all dimensions as float or as array containing
+                        a float for the particular bound of each dimension (float/array)
+    :lower_bound:   The lower bound either for all dimensions as float or as array containing
+                        a float for the particular bound of each dimension (float /array)
+    :n_optimisations:   The number of times you want to run the optimisation procedure
+
+    :returns:       results_df: The distances to which the optimisation converged
+                    point_vectors: the vectors with the best result on all runs
+    """
+
     bounds = define_bounds(n_points, dim, upper, lower)
+
     run_results = np.zeros(n_optimisations)
+    largest_distance = 0
+    point_vectors = np.zeros((8, 7))
+
     for run in range(n_optimisations):
+
         fun_value, res, new_points = minimisation(n_points, dim, bounds)
         run_results[run] = fun_value
-        print(run)
+
+        # check if the current run has a larger distance than our previous best run
+        # if yes save the vectors from from that run
+        if largest_distance < -res.fun:
+            largest_distance = -res.fun
+            point_vectors = new_points
+
+        print("Run number: " + str(run))
+
     results_df = pd.DataFrame(run_results)
+
+    return point_vectors, results_df
+
+
+def plot_histogram(results_df):
+    """ plot the result of our runs as a histogram"""
+
     fig, ax = plt.subplots()
-    # results_df.plot(kind="kde", ax=ax, color="lightcoral")
-    # results_df.plot(kind="hist", density=True, alpha=0.65, bins=25, ax=ax)
     results_df.plot(kind="hist", alpha=0.65, bins=25, ax=ax)
     ax.set_xlabel("Converged euclidean distance")
     ax.set_ylabel("Frequency")
@@ -110,19 +145,21 @@ def run_n_optimisations(dim,n_points, upper, lower, n_optimisations):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.grid(False)
+    # plt.savefig('hist.png')
     plt.show()
-    plt.savefig('hist2.png')
 
 
 # Driver code
 if __name__ == '__main__':
+    """PUT YOUR PARAMETERS HERE"""
     n_points = 8
     dim = 7
     upper = 5
     lower = 0
-    n_optimisations = 200
-    # bounds = define_bounds(n_points, dim, upper, lower)
+    n_optimisations = 5
+    bounds = define_bounds(n_points, dim, upper, lower)
     # fun_value, res, new_points = minimisation(n_points, dim, bounds)
-    # print(res)
-    # print(new_points)
-    run_n_optimisations(dim, n_points, upper, lower, n_optimisations)
+    point_vectors, results_df = run_n_optimisations(dim, n_points, upper, lower, n_optimisations)
+    plot_histogram(results_df)
+
+
