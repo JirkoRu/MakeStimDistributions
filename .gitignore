@@ -2,3 +2,5 @@ Lib
 pyvenv.cfg
 Include
 Scripts
+.idea/
+share/man/man1

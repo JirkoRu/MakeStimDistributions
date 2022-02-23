@@ -145,7 +145,7 @@ def plot_histogram(results_df):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.grid(False)
-    # plt.savefig('hist.png')
+    plt.savefig('hist.png')
     plt.show()
 
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     dim = 7
     upper = 5
     lower = 0
-    n_optimisations = 5
+    n_optimisations = 300
     bounds = define_bounds(n_points, dim, upper, lower)
     # fun_value, res, new_points = minimisation(n_points, dim, bounds)
     point_vectors, results_df = run_n_optimisations(dim, n_points, upper, lower, n_optimisations)
