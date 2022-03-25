@@ -65,7 +65,7 @@ def define_bounds(n_points, dim, upper_bound, lower_bound):
     return bounds
 
 
-def minimisation(n_points,dim,bounds):
+def minimisation(n_points, dim, bounds, lower, upper):
     """
     driver function for minimisation
 
@@ -80,7 +80,7 @@ def minimisation(n_points,dim,bounds):
 
     res = minimize(
         objective_function,
-        x0=np.random.random(n_points * dim),
+        x0=np.random.uniform(lower, upper, size=(n_points * dim)),
         args=(n_points, dim),
         bounds=bounds,
     )
@@ -98,9 +98,9 @@ def run_n_optimisations(dim, n_points, upper, lower, n_optimisations):
     Parameters:
     :n_points:      The number of points to be placed in the space (int).
     :dim:           The dimension of the space in which we want to place points (int).
-    :upper_bound:   The upper bound either for all dimensions as float or as array containing
+    :upper:         The upper bound either for all dimensions as float or as array containing
                         a float for the particular bound of each dimension (float/array)
-    :lower_bound:   The lower bound either for all dimensions as float or as array containing
+    :lower:         The lower bound either for all dimensions as float or as array containing
                         a float for the particular bound of each dimension (float /array)
     :n_optimisations:   The number of times you want to run the optimisation procedure
 
@@ -116,7 +116,7 @@ def run_n_optimisations(dim, n_points, upper, lower, n_optimisations):
 
     for run in range(n_optimisations):
 
-        fun_value, res, new_points = minimisation(n_points, dim, bounds)
+        fun_value, res, new_points = minimisation(n_points, dim, bounds, lower, upper)
         run_results[run] = fun_value
 
         # check if the current run has a larger distance than our previous best run
@@ -145,7 +145,7 @@ def plot_histogram(results_df):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.grid(False)
-    plt.savefig('hist.png')
+    # plt.savefig('hist.png')
     plt.show()
 
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     dim = 7
     upper = 5
     lower = 0
-    n_optimisations = 300
+    n_optimisations = 20
     bounds = define_bounds(n_points, dim, upper, lower)
     # fun_value, res, new_points = minimisation(n_points, dim, bounds)
     point_vectors, results_df = run_n_optimisations(dim, n_points, upper, lower, n_optimisations)
