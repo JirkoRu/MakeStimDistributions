@@ -19,14 +19,14 @@ def objective_function(x, n_points, dim):
     between a set of points in an n-dimensional space.
 
     Parameters:
-    :x:         Is a flattened array of all input vectors (array).
+    :x:           Is a flattened array of all input vectors (array).
     :n_points:    The number of points to be placed in the space(int).
     :dim:         The dimension of the space in which we want to place points (int).
 
     :returns:           The minimum euclidean distance of all input vectors.
     """
 
-    x = np.reshape(x, (n_points, dim))
+    x = np.reshape(x, (dim, n_points)).transpose()
     combinations = list(it.combinations(x, 2))  # we list all the unique combinations of points
     norms = np.zeros(len(combinations))
 
@@ -53,10 +53,10 @@ def define_bounds(n_points, dim, upper_bound, lower_bound):
     """
 
     if isinstance(lower_bound, (int, float)) and isinstance(upper_bound, (int, float)):
-        bounds = [(lower_bound, upper_bound) for n in range(n_points*dim)]
+        bounds = np.array([(lower_bound, upper_bound) for n in range(n_points*dim)])
 
     elif len(lower_bound) == dim and len(upper_bound) == dim:
-        bounds = [(lower_bound[n], upper_bound[n]) for n in range(len(dim))]
+        bounds = np.array([(lower_bound[n], upper_bound[n]) for n in range(len(lower_bound)) for points in range(n_points)])
 
     else:
         print("wrong input for error bounds, will terminate")
@@ -77,14 +77,19 @@ def minimisation(n_points, dim, bounds, lower, upper):
                         new_points: contains the points obtained after convergence
                                 (Numpy array, shape(n_points, dim).
     """
+    if type(lower) == list:
+        init_guess = np.array([np.random.uniform(bound[0], bound[1]) for bound in bounds])
+    else:
+        init_guess = np.random.uniform(lower, upper, size=(n_points * dim))
+        print("yus")
 
     res = minimize(
         objective_function,
-        x0=np.random.uniform(lower, upper, size=(n_points * dim)),
+        x0=init_guess,
         args=(n_points, dim),
         bounds=bounds,
     )
-    new_points = np.reshape(res.x, (n_points, dim))
+    new_points = np.reshape(res.x, (dim, n_points))
     fun_value = -res.fun
 
     return fun_value, res, new_points
@@ -112,7 +117,7 @@ def run_n_optimisations(dim, n_points, upper, lower, n_optimisations):
 
     run_results = np.zeros(n_optimisations)
     largest_distance = 0
-    point_vectors = np.zeros((8, 7))
+    final_vectors = np.zeros((8, 7))
 
     for run in range(n_optimisations):
 
@@ -123,13 +128,15 @@ def run_n_optimisations(dim, n_points, upper, lower, n_optimisations):
         # if yes save the vectors from from that run
         if largest_distance < -res.fun:
             largest_distance = -res.fun
-            point_vectors = new_points
+            final_vectors = new_points
 
         print("Run number: " + str(run))
+        print(final_vectors)
+        print(res)
 
     results_df = pd.DataFrame(run_results)
 
-    return point_vectors, results_df
+    return final_vectors, results_df
 
 
 def plot_histogram(results_df):
@@ -152,14 +159,19 @@ def plot_histogram(results_df):
 # Driver code
 if __name__ == '__main__':
     """PUT YOUR PARAMETERS HERE"""
-    n_points = 8
-    dim = 7
-    upper = 5
+    # n_points = 8
+    # dim = 7
+    # these parameters come from hanahs planet generator
+    # upper = [2.1, 6.5, .65, 9, .5, 600, 0.85]
+    # lower = [.4, .2, .12, .8, .05, 10, 0.15]
+    n_points = 2
+    dim = 2
+    upper = 10
     lower = 0
     n_optimisations = 20
     bounds = define_bounds(n_points, dim, upper, lower)
     # fun_value, res, new_points = minimisation(n_points, dim, bounds)
-    point_vectors, results_df = run_n_optimisations(dim, n_points, upper, lower, n_optimisations)
+    final_vectors, results_df = run_n_optimisations(dim, n_points, upper, lower, n_optimisations)
     plot_histogram(results_df)
 
 
